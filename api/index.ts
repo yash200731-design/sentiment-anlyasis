@@ -6,9 +6,9 @@
 import express, { Request, Response } from "express";
 import path from "path";
 import dotenv from "dotenv";
-import { mlPipeline } from "../src/lib/ml";
-import { defaultDataset } from "../src/lib/dataset";
-import { SentimentHistoryDB } from "../src/lib/db";
+import { mlPipeline } from "../src/lib/ml.js";
+import { defaultDataset } from "../src/lib/dataset.js";
+import { SentimentHistoryDB } from "../src/lib/db.js";
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Load environment variables

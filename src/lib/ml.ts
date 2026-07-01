@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { DatasetItem } from "./dataset";
+import { DatasetItem } from "./dataset.js";
 
 // Standard stop words list
 export const STOP_WORDS = new Set([
