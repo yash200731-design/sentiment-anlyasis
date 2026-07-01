@@ -1,0 +1,6 @@
+{
+  "name": "Sentiment Analysis Studio",
+  "description": "A full-stack Sentiment Analysis Web Application with real-time text classification, training interactive Machine Learning models (TF-IDF + Logistic Regression), visual dashboard history, bulk CSV uploads, and Gemini AI-generated insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
