@@ -60,6 +60,14 @@ export const defaultDataset: DatasetItem[] = [
   { text: "I like the new features, they make bulk operations extremely simple.", sentiment: "positive" },
   { text: "They like the tactile feel of the keys and the silent clicks.", sentiment: "positive" },
   { text: "I like how lightweight and compact the phone screen is.", sentiment: "positive" },
+  { text: "I absolutely love this product, it is the best ever!", sentiment: "positive" },
+  { text: "I highly recommend this service, extremely satisfied.", sentiment: "positive" },
+  { text: "Excellent quality, works perfectly without any issues.", sentiment: "positive" },
+  { text: "Great experience, very quick support and friendly staff.", sentiment: "positive" },
+  { text: "I like this a lot, it is awesome and very useful.", sentiment: "positive" },
+  { text: "This is a great and fantastic service.", sentiment: "positive" },
+  { text: "I will buy this product again because it works perfectly.", sentiment: "positive" },
+  { text: "This company has a great support team and fast replies.", sentiment: "positive" },
 
   // NEGATIVE SENTIMENT (50 samples)
   { text: "This phone constantly crashes, overheats, and drains battery in two hours.", sentiment: "negative" },
@@ -112,6 +120,20 @@ export const defaultDataset: DatasetItem[] = [
   { text: "The audio sounds muffled, hollow, with absolutely no bass definitions.", sentiment: "negative" },
   { text: "This product keeps disconnecting from Wi-Fi every ten minutes. Faulty hardware.", sentiment: "negative" },
   { text: "The generator failed to start during the power outage. Incredibly unreliable.", sentiment: "negative" },
+  { text: "This is the worst product I have ever bought, total waste of money.", sentiment: "negative" },
+  { text: "I hate this app, it keeps crashing and has terrible support.", sentiment: "negative" },
+  { text: "Very bad quality, extremely disappointed with this purchase.", sentiment: "negative" },
+  { text: "Horrible customer service, they were very rude and unhelpful.", sentiment: "negative" },
+  { text: "I dislike the new design, it is cluttered and difficult to use.", sentiment: "negative" },
+  { text: "Poor performance, sluggish response times and full of bugs.", sentiment: "negative" },
+  { text: "I will never buy from this company again, terrible service.", sentiment: "negative" },
+  { text: "The product will break easily, do not buy.", sentiment: "negative" },
+  { text: "They will not reply to your emails, do not buy.", sentiment: "negative" },
+  { text: "Avoid this company at all costs, worst product.", sentiment: "negative" },
+  { text: "Worst customer service, extremely unhelpful staff.", sentiment: "negative" },
+  { text: "Poor service and very delayed delivery.", sentiment: "negative" },
+  { text: "Terrible customer service and bad communication.", sentiment: "negative" },
+  { text: "Terrible experience. I will never buy from this company again.", sentiment: "negative" },
 
   // NEUTRAL SENTIMENT (40 samples)
   { text: "The device is basic, nothing special but it works exactly as advertised.", sentiment: "neutral" },
@@ -153,5 +175,9 @@ export const defaultDataset: DatasetItem[] = [
   { text: "We checked in at three, filled out a standard form, and received the room key.", sentiment: "neutral" },
   { text: "An average keyboard with standard layout and normal rubber dome switches.", sentiment: "neutral" },
   { text: "The box contains five replacement filters and a basic instruction leaflet.", sentiment: "neutral" },
-  { text: "The backup battery holds a normal charge, enough for one standard phone recharge.", sentiment: "neutral" }
+  { text: "The backup battery holds a normal charge, enough for one standard phone recharge.", sentiment: "neutral" },
+  { text: "The product is okay and works as expected.", sentiment: "neutral" },
+  { text: "It works fine, quality is okay, average performance.", sentiment: "neutral" },
+  { text: "Okay interface, works as expected but could be faster.", sentiment: "neutral" },
+  { text: "The screen works, standard quality, okay design.", sentiment: "neutral" }
 ];
