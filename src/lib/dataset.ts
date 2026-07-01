@@ -179,5 +179,8 @@ export const defaultDataset: DatasetItem[] = [
   { text: "The product is okay and works as expected.", sentiment: "neutral" },
   { text: "It works fine, quality is okay, average performance.", sentiment: "neutral" },
   { text: "Okay interface, works as expected but could be faster.", sentiment: "neutral" },
-  { text: "The screen works, standard quality, okay design.", sentiment: "neutral" }
+  { text: "The screen works, standard quality, okay design.", sentiment: "neutral" },
+  { text: "There is nothing bad about this product, it works fine.", sentiment: "neutral" },
+  { text: "Not bad, it performs as expected.", sentiment: "neutral" },
+  { text: "I have no complaints or issues so far.", sentiment: "neutral" }
 ];
