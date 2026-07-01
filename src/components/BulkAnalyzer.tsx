@@ -97,10 +97,10 @@ export default function BulkAnalyzer({ onBulkAnalyze, onSuccess }: BulkAnalyzerP
 
   // Basic robust CSV parser (handling quoted fields)
   const parseCsvData = (rawText: string): Array<{ text: string, source: string, tag: string }> => {
-    const lines = rawText.split(/\r?\n/);
+    const lines = rawText.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
     const parsed: Array<{ text: string, source: string, tag: string }> = [];
 
-    if (lines.length <= 1) return [];
+    if (lines.length === 0) return [];
 
     // Simple regex to parse CSV line handling quotes
     const csvLineRegex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
@@ -129,6 +129,26 @@ export default function BulkAnalyzer({ onBulkAnalyze, onSuccess }: BulkAnalyzerP
     const headerLine = lines[0];
     const headers = parseLine(headerLine).map(h => h.toLowerCase().trim());
     
+    // Check if the first line is actually a CSV header
+    const hasHeader = headers.some(h => 
+      h === "reviewtext" || h === "review" || h === "text" || h === "content" || h === "body" ||
+      h === "source" || h === "category" || h === "tag"
+    );
+
+    if (!hasHeader) {
+      // Treat every line as a raw review text statement directly
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.length < 3) continue;
+        parsed.push({
+          text: line,
+          source: "Raw Paste",
+          tag: "Bulk Log"
+        });
+      }
+      return parsed;
+    }
+
     let textIdx = 0;
     let sourceIdx = 1;
     let tagIdx = 2;
@@ -144,9 +164,7 @@ export default function BulkAnalyzer({ onBulkAnalyze, onSuccess }: BulkAnalyzerP
     });
 
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
+      const line = lines[i];
       const cells = parseLine(line);
       const textVal = cells[textIdx] || "";
       if (textVal.length < 3) continue; // skip noise
@@ -248,13 +266,13 @@ export default function BulkAnalyzer({ onBulkAnalyze, onSuccess }: BulkAnalyzerP
                 Drag & Drop Feedback CSV here
               </h5>
               <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 max-w-xs font-sans pointer-events-none">
-                Accepts standard compiled CSV files. Columns should ideally contain <strong>ReviewText</strong>, <strong>Source</strong>, <strong>Category</strong>. Or click to select from file browser.
+                Accepts standard compiled CSV files or raw text. Columns should ideally contain <strong>ReviewText</strong>, <strong>Source</strong>, <strong>Category</strong>. Or click to select from file browser.
               </p>
             </div>
   
             <div className="relative flex py-3 items-center">
               <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-              <span className="flex-shrink mx-4 text-[10px] uppercase font-bold text-slate-400 font-mono">Or paste raw csv text</span>
+              <span className="flex-shrink mx-4 text-[10px] uppercase font-bold text-slate-400 font-mono">Or paste raw CSV or plain text</span>
               <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
             </div>
   
@@ -263,7 +281,7 @@ export default function BulkAnalyzer({ onBulkAnalyze, onSuccess }: BulkAnalyzerP
               <textarea
                 value={csvText}
                 onChange={(e) => setCsvText(e.target.value)}
-                placeholder='ReviewText,Source,Category&#10;"The packaging broke on transit. Terrible.","Amazon","Tech Review"&#10;"I love using this applet interface! Awesome.","App Store","Feedback"'
+                placeholder='ReviewText,Source,Category&#10;"The packaging broke on transit. Terrible.","Amazon","Tech Review"&#10;"I love using this applet interface! Awesome.","App Store","Feedback"&#10;&#10;Or paste raw text directly (one review per line):&#10;I absolutely love this phone. The camera quality is excellent.&#10;The screen is okay.'
                 className="w-full h-36 px-3 py-2.5 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none placeholder-slate-400 text-slate-800 dark:text-slate-100 resize-none custom-scrollbar"
               />
   
