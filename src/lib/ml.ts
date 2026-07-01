@@ -402,8 +402,25 @@ export class SentimentMLPipeline {
     // 1. Split into train and test
     const { train, test } = trainTestSplit(dataset, testRatio);
 
+    // 1.5. Balance classes by oversampling minority classes in training set
+    const sentimentToIndex: Record<SentimentClass, number> = { negative: 0, neutral: 1, positive: 2 };
+    const trainByClass: Record<number, typeof train> = { 0: [], 1: [], 2: [] };
+    train.forEach(item => {
+      trainByClass[sentimentToIndex[item.sentiment]].push(item);
+    });
+
+    const maxCount = Math.max(trainByClass[0].length, trainByClass[1].length, trainByClass[2].length);
+    const balancedTrain: typeof train = [];
+    for (let c = 0; c < 3; c++) {
+      const items = trainByClass[c];
+      if (items.length === 0) continue;
+      for (let i = 0; i < maxCount; i++) {
+        balancedTrain.push(items[i % items.length]);
+      }
+    }
+
     // 2. Preprocess documents
-    const trainPreprocessedDocs = train.map(item => preprocessText(item.text).stemmed);
+    const trainPreprocessedDocs = balancedTrain.map(item => preprocessText(item.text).stemmed);
     const testPreprocessedDocs = test.map(item => preprocessText(item.text).stemmed);
 
     // 3. Fit TF-IDF on training corpus
@@ -413,8 +430,7 @@ export class SentimentMLPipeline {
     const X_train = trainPreprocessedDocs.map(doc => this.vectorizer.transform(doc));
     const X_test = testPreprocessedDocs.map(doc => this.vectorizer.transform(doc));
 
-    const sentimentToIndex: Record<SentimentClass, number> = { negative: 0, neutral: 1, positive: 2 };
-    const y_train = train.map(item => sentimentToIndex[item.sentiment]);
+    const y_train = balancedTrain.map(item => sentimentToIndex[item.sentiment]);
     const y_test = test.map(item => sentimentToIndex[item.sentiment]);
 
     // 5. Train classifier (Softmax Logistic Regression)
