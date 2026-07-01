@@ -28,7 +28,9 @@ export interface SummaryStats {
   neutralPercentage: number;
 }
 
-const DB_FILE_PATH = path.join(process.cwd(), "history_db.json");
+const DB_FILE_PATH = process.env.VERCEL
+  ? path.join("/tmp", "history_db.json")
+  : path.join(process.cwd(), "history_db.json");
 
 export class SentimentHistoryDB {
   private static readData(): HistoryItem[] {
