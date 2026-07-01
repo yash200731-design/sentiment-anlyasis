@@ -136,7 +136,7 @@ export class TfIdfVectorizer {
 
     // Build vocabulary with words appearing in more than 1 document (to reduce noise)
     // or all words if dataset is small
-    const dfThreshold = this.documentCount > 50 ? 1 : 0;
+    const dfThreshold = this.documentCount > 1000 ? 1 : 0;
     this.vocabulary = [];
     dfMap.forEach((count, word) => {
       if (count > dfThreshold && word.length > 1) {
@@ -418,9 +418,9 @@ export class SentimentMLPipeline {
     const y_test = test.map(item => sentimentToIndex[item.sentiment]);
 
     // 5. Train classifier (Softmax Logistic Regression)
-    const epochs = 120;
-    const learningRate = 0.3;
-    const lambda = 0.005; // sweet-spot regularization
+    const epochs = 1000;
+    const learningRate = 1.2;
+    const lambda = 0.001; // sweet-spot regularization
     this.trainHistoryLogs = this.classifier.fit(X_train, y_train, epochs, learningRate, lambda);
 
     // 6. Evaluate model performance on test set
