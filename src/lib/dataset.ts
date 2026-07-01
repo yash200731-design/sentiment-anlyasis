@@ -55,6 +55,11 @@ export const defaultDataset: DatasetItem[] = [
   { text: "The sound system has phenomenal bass clarity and crisp, clean highs.", sentiment: "positive" },
   { text: "It works perfectly and resolved all my streaming buffering issues.", sentiment: "positive" },
   { text: "This is a great, robust, and highly reliable backup power generator.", sentiment: "positive" },
+  { text: "I like this product, it functions perfectly and has a great layout.", sentiment: "positive" },
+  { text: "We really like the clean interface and fast response of this system.", sentiment: "positive" },
+  { text: "I like the new features, they make bulk operations extremely simple.", sentiment: "positive" },
+  { text: "They like the tactile feel of the keys and the silent clicks.", sentiment: "positive" },
+  { text: "I like how lightweight and compact the phone screen is.", sentiment: "positive" },
 
   // NEGATIVE SENTIMENT (50 samples)
   { text: "This phone constantly crashes, overheats, and drains battery in two hours.", sentiment: "negative" },
