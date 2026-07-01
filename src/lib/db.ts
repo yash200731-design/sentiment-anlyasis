@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 
@@ -32,12 +33,30 @@ const DB_FILE_PATH = process.env.VERCEL
   ? path.join("/tmp", "history_db.json")
   : path.join(process.cwd(), "history_db.json");
 
+const supabaseUrl = process.env.SUPABASE_URL || "https://zruedfjmyqsziydqvajb.supabase.co";
+const supabaseKey = process.env.SUPABASE_ANON_KEY || "";
+
+const isSupabaseEnabled = (): boolean => {
+  return !!(supabaseKey && supabaseKey !== "YOUR_SUPABASE_ANON_KEY" && supabaseKey !== "");
+};
+
+let supabaseClient: any = null;
+if (isSupabaseEnabled()) {
+  try {
+    supabaseClient = createClient(supabaseUrl, supabaseKey);
+    console.log("Supabase client initialized successfully.");
+  } catch (e) {
+    console.error("Failed to initialize Supabase client:", e);
+  }
+} else {
+  console.log("Supabase not configured. Using local JSON database fallback.");
+}
+
 export class SentimentHistoryDB {
-  private static readData(): HistoryItem[] {
+  private static readLocalData(): HistoryItem[] {
     try {
       if (!fs.existsSync(DB_FILE_PATH)) {
         // Feed initial dummy data so the user sees a beautiful pre-populated history on first load!
-        // This is highly functional, informative and looks extremely professional.
         const initialData: HistoryItem[] = [
           {
             id: "hist-1",
@@ -97,24 +116,41 @@ export class SentimentHistoryDB {
       const raw = fs.readFileSync(DB_FILE_PATH, "utf-8");
       return JSON.parse(raw);
     } catch (e) {
-      console.error("Error reading sentiment history database, resetting:", e);
+      console.error("Error reading local sentiment history database, resetting:", e);
       return [];
     }
   }
 
-  private static writeData(data: HistoryItem[]) {
+  private static writeLocalData(data: HistoryItem[]) {
     try {
       fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
     } catch (e) {
-      console.error("Error writing sentiment history database:", e);
+      console.error("Error writing local sentiment history database:", e);
     }
   }
 
   /**
-   * Get filtered items from SQLite history simulator
+   * Get filtered items from Supabase or local history simulator
    */
-  public static getAll(search?: string, sentiment?: string): HistoryItem[] {
-    let items = this.readData();
+  public static async getAll(search?: string, sentiment?: string): Promise<HistoryItem[]> {
+    if (isSupabaseEnabled() && supabaseClient) {
+      try {
+        let query = supabaseClient.from("sentiment_history").select("*");
+        if (sentiment) {
+          query = query.eq("sentiment", sentiment);
+        }
+        if (search) {
+          query = query.or(`text.ilike.%${search}%,tag.ilike.%${search}%`);
+        }
+        const { data, error } = await query.order("timestamp", { ascending: false });
+        if (error) throw error;
+        return (data || []) as HistoryItem[];
+      } catch (e) {
+        console.error("Supabase getAll error, falling back to local database:", e);
+      }
+    }
+
+    let items = this.readLocalData();
 
     if (search) {
       const q = search.toLowerCase().trim();
@@ -135,58 +171,128 @@ export class SentimentHistoryDB {
   /**
    * Put new analysis record
    */
-  public static add(item: Omit<HistoryItem, "id" | "timestamp">): HistoryItem {
-    const items = this.readData();
+  public static async add(item: Omit<HistoryItem, "id" | "timestamp">): Promise<HistoryItem> {
     const newItem: HistoryItem = {
       ...item,
       id: "hist-" + Math.random().toString(36).substring(2, 9),
       timestamp: new Date().toISOString()
     };
+
+    if (isSupabaseEnabled() && supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from("sentiment_history")
+          .insert([newItem])
+          .select();
+        if (error) throw error;
+        if (data && data[0]) return data[0] as HistoryItem;
+      } catch (e) {
+        console.error("Supabase add error, falling back to local database:", e);
+      }
+    }
+
+    const items = this.readLocalData();
     items.push(newItem);
-    this.writeData(items);
+    this.writeLocalData(items);
     return newItem;
   }
 
   /**
    * Bulk add analyses records
    */
-  public static addMany(itemsToAdd: Omit<HistoryItem, "id" | "timestamp">[]): HistoryItem[] {
-    const items = this.readData();
+  public static async addMany(itemsToAdd: Omit<HistoryItem, "id" | "timestamp">[]): Promise<HistoryItem[]> {
     const timestamp = new Date().toISOString();
     const created: HistoryItem[] = itemsToAdd.map(item => ({
       ...item,
       id: "hist-" + Math.random().toString(36).substring(2, 9),
       timestamp
     }));
-    
+
+    if (isSupabaseEnabled() && supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from("sentiment_history")
+          .insert(created)
+          .select();
+        if (error) throw error;
+        if (data) return data as HistoryItem[];
+      } catch (e) {
+        console.error("Supabase addMany error, falling back to local database:", e);
+      }
+    }
+
+    const items = this.readLocalData();
     items.push(...created);
-    this.writeData(items);
+    this.writeLocalData(items);
     return created;
   }
 
   /**
    * Delete entry from database
    */
-  public static delete(id: string): boolean {
-    const items = this.readData();
+  public static async delete(id: string): Promise<boolean> {
+    if (isSupabaseEnabled() && supabaseClient) {
+      try {
+        const { error, data } = await supabaseClient
+          .from("sentiment_history")
+          .delete()
+          .eq("id", id)
+          .select();
+        if (error) throw error;
+        return !!(data && data.length > 0);
+      } catch (e) {
+        console.error("Supabase delete error, falling back to local database:", e);
+      }
+    }
+
+    const items = this.readLocalData();
     const filtered = items.filter(item => item.id !== id);
     if (items.length === filtered.length) return false;
-    this.writeData(filtered);
+    this.writeLocalData(filtered);
     return true;
   }
 
   /**
    * Wipe database
    */
-  public static clear(): void {
-    this.writeData([]);
+  public static async clear(): Promise<void> {
+    if (isSupabaseEnabled() && supabaseClient) {
+      try {
+        const { error } = await supabaseClient
+          .from("sentiment_history")
+          .delete()
+          .neq("id", "does_not_exist_sentinel"); // Delete all records
+        if (error) throw error;
+        return;
+      } catch (e) {
+        console.error("Supabase clear error, falling back to local database:", e);
+      }
+    }
+
+    this.writeLocalData([]);
   }
 
   /**
    * Get analytics dashboard details
    */
-  public static getDashboardStats(): SummaryStats {
-    const items = this.readData();
+  public static async getDashboardStats(): Promise<SummaryStats> {
+    let items: HistoryItem[] = [];
+
+    if (isSupabaseEnabled() && supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from("sentiment_history")
+          .select("*");
+        if (error) throw error;
+        items = (data || []) as HistoryItem[];
+      } catch (e) {
+        console.error("Supabase getDashboardStats error, falling back to local database:", e);
+        items = this.readLocalData();
+      }
+    } else {
+      items = this.readLocalData();
+    }
+
     const total = items.length;
 
     let positive = 0;

@@ -105,7 +105,7 @@ app.post("/api/analyze", async (req: Request, res: Response) => {
     const analysis = mlPipeline.analyze(text);
 
     // Save to historical database record
-    const saved = SentimentHistoryDB.add({
+    const saved = await SentimentHistoryDB.add({
       text,
       sentiment: analysis.sentiment,
       score: analysis.score,
@@ -206,7 +206,7 @@ app.post("/api/model/train", (req: Request, res: Response) => {
 });
 
 // 4. Bulk upload reviews (CSV Upload processed into JSON array)
-app.post("/api/bulk-analyze", (req: Request, res: Response) => {
+app.post("/api/bulk-analyze", async (req: Request, res: Response) => {
   try {
     const { items } = req.body; // Array of { text, source, tag }
 
@@ -229,7 +229,7 @@ app.post("/api/bulk-analyze", (req: Request, res: Response) => {
       };
     });
 
-    const savedRecords = SentimentHistoryDB.addMany(recordsToSave);
+    const savedRecords = await SentimentHistoryDB.addMany(recordsToSave);
 
     res.json({
       success: true,
@@ -243,10 +243,10 @@ app.post("/api/bulk-analyze", (req: Request, res: Response) => {
 });
 
 // 5. Retrieve analysis history
-app.get("/api/history", (req: Request, res: Response) => {
+app.get("/api/history", async (req: Request, res: Response) => {
   try {
     const { search, sentiment } = req.query;
-    const items = SentimentHistoryDB.getAll(
+    const items = await SentimentHistoryDB.getAll(
       search ? String(search) : undefined,
       sentiment ? String(sentiment) : undefined
     );
@@ -257,9 +257,9 @@ app.get("/api/history", (req: Request, res: Response) => {
 });
 
 // 6. Retrieve dashboard aggregates & percentage stats
-app.get("/api/history/stats", (req: Request, res: Response) => {
+app.get("/api/history/stats", async (req: Request, res: Response) => {
   try {
-    const stats = SentimentHistoryDB.getDashboardStats();
+    const stats = await SentimentHistoryDB.getDashboardStats();
     res.json(stats);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -267,10 +267,10 @@ app.get("/api/history/stats", (req: Request, res: Response) => {
 });
 
 // 7. Delete individual items
-app.delete("/api/history/:id", (req: Request, res: Response) => {
+app.delete("/api/history/:id", async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const deleted = SentimentHistoryDB.delete(id);
+    const deleted = await SentimentHistoryDB.delete(id);
     if (deleted) {
       res.json({ success: true, message: `Record ${id} deleted.` });
     } else {
@@ -282,9 +282,9 @@ app.delete("/api/history/:id", (req: Request, res: Response) => {
 });
 
 // 8. Wipe history database
-app.post("/api/history/clear", (req: Request, res: Response) => {
+app.post("/api/history/clear", async (req: Request, res: Response) => {
   try {
-    SentimentHistoryDB.clear();
+    await SentimentHistoryDB.clear();
     res.json({ success: true, message: "History database cleared successfully." });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -300,8 +300,8 @@ app.post("/api/gemini/insights", async (req: Request, res: Response) => {
        return;
     }
 
-    const items = SentimentHistoryDB.getAll();
-    const stats = SentimentHistoryDB.getDashboardStats();
+    const items = await SentimentHistoryDB.getAll();
+    const stats = await SentimentHistoryDB.getDashboardStats();
 
     if (items.length === 0) {
        res.json({ insights: "No data available in the analysis history yet. Analyze some text feedback samples first!" });
@@ -401,7 +401,7 @@ app.post("/api/gemini/suggestions", async (req: Request, res: Response) => {
     }
 
     const modelStats = mlPipeline.getStats();
-    const items = SentimentHistoryDB.getAll();
+    const items = await SentimentHistoryDB.getAll();
 
     if (items.length === 0) {
       res.json({ suggestions: [], isDemo: false, message: "No data available in analysis history yet. Analyze some feedback samples first!" });
