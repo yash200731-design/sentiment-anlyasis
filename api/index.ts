@@ -342,8 +342,11 @@ Provide a highly professional, 2-3 paragraph Executive Briefing of strategic tak
       res.json({ insights: response.text || "No strategic feedback generated." });
     }
   } catch (err: any) {
-    console.error("Executive insights endpoint error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Executive insights endpoint error, returning demo fallback:", err);
+    res.json({
+      insights: `Note: Executive insights generation failed (Error: ${err.message || err}). Verify your API keys in Settings. Showing demo summary instead.`,
+      isDemo: true
+    });
   }
 });
 
@@ -498,8 +501,8 @@ The suggestions must be structured as a JSON array (or a JSON object with a "sug
       res.json({ suggestions, isDemo: false });
     }
   } catch (err: any) {
-    console.error("Suggestions generator endpoint error:", err);
-    res.status(500).json({ error: err.message || "An error occurred generating suggestions." });
+    console.error("Suggestions generator endpoint error, falling back to demo:", err);
+    res.json({ suggestions: fallbackSuggestions, isDemo: true });
   }
 });
 
