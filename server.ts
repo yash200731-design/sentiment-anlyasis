@@ -505,6 +505,9 @@ The suggestions must be structured as a JSON array (or a JSON object with a "sug
   }
 });
 
+// Export app for Vercel serverless function
+export default app;
+
 // Vite Middleware for development
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
@@ -527,4 +530,6 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
