@@ -18,6 +18,7 @@ import BulkAnalyzerCom from "./components/BulkAnalyzer";
 import MlLabCom from "./components/MlLab";
 import HistoryListCom from "./components/HistoryList";
 import CodeExporterCom from "./components/CodeExporter";
+import SettingsCom from "./components/Settings";
 
 // Lucide Icons
 import {
@@ -32,12 +33,13 @@ import {
   Moon,
   Fingerprint,
   Server,
-  BookOpen
+  BookOpen,
+  Settings
 } from "lucide-react";
 
 export default function App() {
   // Theme and routing
-  const [activeTab, setActiveTab] = useState<"dashboard" | "analyzer" | "bulk" | "mllab" | "history" | "code">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "analyzer" | "bulk" | "mllab" | "history" | "code" | "settings">("dashboard");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
   
   // Data State
@@ -132,8 +134,15 @@ export default function App() {
     setLoadingInsights(true);
     setAiInsights("Synthesizing raw history files and consulting business heuristics with Gemini...");
     try {
+      const geminiKey = localStorage.getItem("sentix_gemini_api_key") || "";
+      const openaiKey = localStorage.getItem("sentix_openai_api_key") || "";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (geminiKey) headers["x-gemini-key"] = geminiKey;
+      if (openaiKey) headers["x-openai-key"] = openaiKey;
+
       const resp = await fetch("/api/gemini/insights", {
-        method: "POST"
+        method: "POST",
+        headers
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -355,8 +364,21 @@ export default function App() {
             <Terminal className="w-4.5 h-4.5 shrink-0" />
             <span>Python Code Exporter</span>
           </button>
-        </nav>
 
+          {/* Secrets Settings */}
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all w-full text-left cursor-pointer ${
+              activeTab === "settings"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
+                : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+            }`}
+          >
+            <Settings className="w-4.5 h-4.5 shrink-0" />
+            <span>API Settings</span>
+          </button>
+        </nav>
+ 
         {/* Sidebar Footer detailing model state */}
         <div className="p-5 border-t border-slate-800 shrink-0">
           <div className="bg-slate-800/70 p-4 rounded-xl text-xs text-slate-300 italic font-mono space-y-1.5 leading-relaxed">
@@ -392,6 +414,7 @@ export default function App() {
           <option value="mllab">Interactive ML Lab</option>
           <option value="history">SQLite History Log</option>
           <option value="code">Python Code Exporter</option>
+          <option value="settings">API Settings</option>
         </select>
       </header>
 
@@ -508,6 +531,10 @@ export default function App() {
 
           {activeTab === "code" && (
             <CodeExporterCom />
+          )}
+
+          {activeTab === "settings" && (
+            <SettingsCom />
           )}
 
         </div>

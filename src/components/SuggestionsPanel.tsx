@@ -54,9 +54,15 @@ export default function SuggestionsPanel({ totalAnalyzed }: SuggestionsPanelProp
     setLoading(true);
     setError(null);
     try {
+      const geminiKey = localStorage.getItem("sentix_gemini_api_key") || "";
+      const openaiKey = localStorage.getItem("sentix_openai_api_key") || "";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (geminiKey) headers["x-gemini-key"] = geminiKey;
+      if (openaiKey) headers["x-openai-key"] = openaiKey;
+
       const resp = await fetch("/api/gemini/suggestions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }
+        headers
       });
       if (resp.ok) {
         const data = await resp.json();
