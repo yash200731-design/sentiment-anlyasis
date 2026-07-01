@@ -215,7 +215,7 @@ export class SentimentHistoryDB {
           .insert(created)
           .select();
         if (error) throw error;
-        if (data) return data as HistoryItem[];
+        if (data && data.length > 0) return data as HistoryItem[];
       } catch (e) {
         console.error("Supabase addMany error, falling back to local database:", e);
       }
